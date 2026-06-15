@@ -1,1 +1,10 @@
 /* 使用全局样式 */
+
+.input {
+  height: 88rpx;
+  line-height: 44rpx;
+  padding-top: 22rpx;
+  padding-bottom: 22rpx;
+  box-sizing: border-box;
+  display: block;
+}

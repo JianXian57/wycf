@@ -39,7 +39,7 @@
                 <view class="list-item-title">{{drawItem.resultName}}</view>
                 <view class="list-item-subtitle">{{drawItem.exactLabel}}</view>
               </view>
-              <text class="tag {{drawItem.drawType === 'recipe' ? 'tag-success' : 'tag-muted'}}">{{drawItem.drawType === 'recipe' ? '做饭' : '选饭'}}</text>
+              <text class="tag {{drawItem.recorded ? 'tag-success' : 'tag-muted'}}">{{drawItem.statusLabel}}</text>
             </view>
 
             <view wx:if="{{drawItem.drawType === 'recipe' && drawItem.snapshot}}">

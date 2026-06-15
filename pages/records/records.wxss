@@ -2,3 +2,32 @@
   padding: 14rpx 20rpx;
   font-size: 22rpx;
 }
+
+.mini-auto {
+  min-width: auto !important;
+  flex: 0 0 auto !important;
+}
+
+.group-header {
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+.group-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  justify-content: flex-end;
+}
+
+.record-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.tag-ghost {
+  background: #f7f1e8;
+  color: #5d5244;
+}

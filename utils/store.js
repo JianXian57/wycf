@@ -19,7 +19,7 @@ const {
 } = require('./validators')
 const { sortByTimestampDesc } = require('./time')
 
-const SCHEMA_VERSION = 2
+const SCHEMA_VERSION = 3
 const STORAGE_KEYS = {
   META: 'meal_decider_meta',
   CHOICES: 'meal_decider_choices',
@@ -120,6 +120,29 @@ function pickLatestDrawId(drawHistory, drawType) {
   return item ? item.id : ''
 }
 
+function buildDrawHistoryMap(drawHistory) {
+  const result = Object.create(null)
+
+  drawHistory.forEach(item => {
+    result[item.id] = item
+  })
+
+  return result
+}
+
+function inferMealSourceType(record, drawHistoryMap) {
+  if (record.sourceType === 'choice' || record.sourceType === 'recipe' || record.sourceType === 'manual') {
+    return record.sourceType
+  }
+
+  const drawRecord = record.sourceDrawId ? drawHistoryMap[record.sourceDrawId] : null
+  if (drawRecord && (drawRecord.drawType === 'choice' || drawRecord.drawType === 'recipe')) {
+    return drawRecord.drawType
+  }
+
+  return 'manual'
+}
+
 function syncMetaReferences(state) {
   const nextState = {
     meta: normalizeMeta(state.meta),
@@ -129,11 +152,12 @@ function syncMetaReferences(state) {
     mealRecords: normalizeMealRecordList(state.mealRecords),
   }
   const recentDraws = sortDrawHistoryByTime(nextState.drawHistory)
-  const drawIdMap = Object.create(null)
+  const drawIdMap = buildDrawHistoryMap(recentDraws)
 
-  recentDraws.forEach(item => {
-    drawIdMap[item.id] = item
-  })
+  nextState.mealRecords = nextState.mealRecords.map(item => ({
+    ...item,
+    sourceType: inferMealSourceType(item, drawIdMap),
+  }))
 
   const choiceId = trimText(nextState.meta.lastResultDrawIds.choice)
   const recipeId = trimText(nextState.meta.lastResultDrawIds.recipe)
@@ -174,7 +198,7 @@ function needsStateMigration(rawState, normalizedState) {
   }
 
   const rawMeals = Array.isArray(rawState.mealRecords) ? rawState.mealRecords : []
-  if (rawMeals.some(item => !item || typeof item !== 'object' || typeof item.sourceDrawId !== 'string')) {
+  if (rawMeals.some(item => !item || typeof item !== 'object' || typeof item.sourceDrawId !== 'string' || typeof item.sourceType !== 'string')) {
     return true
   }
 
@@ -603,6 +627,10 @@ function saveMealRecordDraft(draft) {
     }
   }
 
+  const sourceType = validation.data.sourceDrawId
+    ? (state.drawHistory.find(item => item.id === validation.data.sourceDrawId) || {}).drawType || validation.data.sourceType || 'manual'
+    : 'manual'
+
   if (currentId) {
     const index = state.mealRecords.findIndex(item => item.id === currentId)
     if (index < 0) {
@@ -620,6 +648,7 @@ function saveMealRecordDraft(draft) {
       note: validation.data.note,
       eatenAt: validation.data.eatenAt,
       sourceDrawId: validation.data.sourceDrawId || current.sourceDrawId || '',
+      sourceType: validation.data.sourceDrawId ? sourceType : 'manual',
       updatedAt: timestamp,
     }
   } else {
@@ -630,6 +659,7 @@ function saveMealRecordDraft(draft) {
       foodName: validation.data.foodName,
       note: validation.data.note,
       sourceDrawId: validation.data.sourceDrawId,
+      sourceType: validation.data.sourceDrawId ? sourceType : 'manual',
       createdAt: timestamp,
       updatedAt: timestamp,
     })

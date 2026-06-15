@@ -4,6 +4,7 @@ const { composeBeijingTimestamp, isValidDateString, isValidTimeString, toTimesta
 const CHOICE_NAME_MAX_LENGTH = 30
 const RECIPE_DIFFICULTIES = ['简单', '普通', '复杂']
 const MEAL_TYPES = ['早餐', '早午餐', '午餐', '下午茶', '晚餐', '夜宵', '加餐', '其他']
+const MEAL_SOURCE_TYPES = ['choice', 'recipe', 'manual']
 
 function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -15,6 +16,32 @@ function trimText(value) {
   }
 
   return String(value).trim()
+}
+
+function looksLikeEncodedText(value) {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  if (!/%[0-9A-Fa-f]{2}/.test(value)) {
+    return false
+  }
+
+  return value.replace(/%[0-9A-Fa-f]{2}/g, '').indexOf('%') < 0
+}
+
+function normalizeMaybeEncodedText(value) {
+  const text = trimText(value)
+  if (!looksLikeEncodedText(text)) {
+    return text
+  }
+
+  try {
+    const decoded = decodeURIComponent(text)
+    return decoded && decoded !== text ? decoded : text
+  } catch (error) {
+    return text
+  }
 }
 
 function normalizeLines(value) {
@@ -91,9 +118,9 @@ function validateChoiceDraft(draft) {
   }
 
   return ok({
-    name,
+    name: normalizeMaybeEncodedText(name),
     enabled: normalizeBoolean(draft && draft.enabled, true),
-    category: trimText(draft && draft.category),
+    category: normalizeMaybeEncodedText(draft && draft.category),
     weight: normalizePositiveInteger(draft && draft.weight, 1),
   })
 }
@@ -124,13 +151,13 @@ function validateRecipeDraft(draft) {
   }
 
   return ok({
-    name,
-    category,
+    name: normalizeMaybeEncodedText(name),
+    category: normalizeMaybeEncodedText(category),
     ingredients,
     steps,
     durationMinutes,
     difficulty,
-    note,
+    note: normalizeMaybeEncodedText(note),
     enabled: normalizeBoolean(draft && draft.enabled, true),
     weight: normalizePositiveInteger(draft && draft.weight, 1),
   })
@@ -166,9 +193,10 @@ function validateMealDraft(draft) {
     time,
     eatenAt,
     mealType,
-    foodName,
-    note,
+    foodName: normalizeMaybeEncodedText(foodName),
+    note: trimText(note),
     sourceDrawId,
+    sourceType: pickAllowedValue(draft && draft.sourceType, MEAL_SOURCE_TYPES, 'manual'),
   })
 }
 
@@ -178,9 +206,9 @@ function normalizeChoiceItem(raw, index) {
 
   return {
     id: trimText(item.id) || createId('choice'),
-    name: trimText(item.name) || `未命名选项${fallbackIndex}`,
+    name: normalizeMaybeEncodedText(item.name) || `未命名选项${fallbackIndex}`,
     enabled: normalizeBoolean(item.enabled, true),
-    category: trimText(item.category),
+    category: normalizeMaybeEncodedText(item.category),
     weight: normalizePositiveInteger(item.weight, 1),
     createdAt: normalizeTimestamp(item.createdAt, Date.now()),
     updatedAt: normalizeTimestamp(item.updatedAt, Date.now()),
@@ -195,13 +223,13 @@ function normalizeRecipeItem(raw, index) {
 
   return {
     id: trimText(item.id) || createId('recipe'),
-    name: trimText(item.name) || `未命名菜谱${fallbackIndex}`,
-    category: trimText(item.category),
+    name: normalizeMaybeEncodedText(item.name) || `未命名菜谱${fallbackIndex}`,
+    category: normalizeMaybeEncodedText(item.category),
     ingredients: ingredients.length ? ingredients : ['待补充食材'],
     steps: steps.length ? steps : ['待补充步骤'],
     durationMinutes: normalizePositiveInteger(item.durationMinutes, 15),
     difficulty: pickAllowedValue(item.difficulty, RECIPE_DIFFICULTIES, '普通'),
-    note: trimText(item.note),
+    note: normalizeMaybeEncodedText(item.note),
     enabled: normalizeBoolean(item.enabled, true),
     weight: normalizePositiveInteger(item.weight, 1),
     createdAt: normalizeTimestamp(item.createdAt, Date.now()),
@@ -218,9 +246,10 @@ function normalizeMealRecordItem(raw, index) {
     id: trimText(item.id) || createId('meal'),
     eatenAt,
     mealType: pickAllowedValue(item.mealType, MEAL_TYPES, '其他'),
-    foodName: trimText(item.foodName) || `未命名餐食${fallbackIndex}`,
+    foodName: normalizeMaybeEncodedText(item.foodName) || `未命名餐食${fallbackIndex}`,
     note: trimText(item.note),
     sourceDrawId: trimText(item.sourceDrawId),
+    sourceType: pickAllowedValue(item.sourceType, MEAL_SOURCE_TYPES, ''),
     createdAt: normalizeTimestamp(item.createdAt, eatenAt),
     updatedAt: normalizeTimestamp(item.updatedAt, eatenAt),
   }
@@ -237,7 +266,7 @@ function normalizeDrawRecordItem(raw, index) {
     id: trimText(item.id) || createId('draw'),
     drawType,
     resultId: trimText(item.resultId) || (snapshot ? snapshot.id : createId(drawType)),
-    resultName: trimText(item.resultName) || (snapshot ? snapshot.name : '未知结果'),
+    resultName: normalizeMaybeEncodedText(item.resultName) || (snapshot ? snapshot.name : '未知结果'),
     snapshot,
     drawnAt,
   }
@@ -295,14 +324,17 @@ function normalizeMeta(raw) {
 module.exports = {
   CHOICE_NAME_MAX_LENGTH,
   MEAL_TYPES,
+  MEAL_SOURCE_TYPES,
   RECIPE_DIFFICULTIES,
   fail,
+  looksLikeEncodedText,
   normalizeBoolean,
   normalizeChoiceItem,
   normalizeChoiceList,
   normalizeDrawRecordItem,
   normalizeDrawRecordList,
   normalizeLines,
+  normalizeMaybeEncodedText,
   normalizeMealRecordItem,
   normalizeMealRecordList,
   normalizeMeta,

@@ -2,11 +2,37 @@ const { deleteMealRecord, getDisplayMealRecords, getSummary } = require('../../u
 const { formatDateTimeLabel, formatHumanizedClock, groupByBeijingDate } = require('../../utils/time')
 const { confirmModal, navigateTo, switchTab, toast } = require('../../utils/ui')
 
+function getSourceLabel(sourceType) {
+  if (sourceType === 'choice') {
+    return '选饭'
+  }
+
+  if (sourceType === 'recipe') {
+    return '做饭'
+  }
+
+  return '手动记录'
+}
+
+function getSourceTagClass(sourceType) {
+  if (sourceType === 'choice') {
+    return 'tag-muted'
+  }
+
+  if (sourceType === 'recipe') {
+    return 'tag-success'
+  }
+
+  return 'tag-ghost'
+}
+
 function decorateRecord(record) {
   return {
     ...record,
     exactLabel: formatDateTimeLabel(record.eatenAt),
     timeLabel: formatHumanizedClock(record.eatenAt),
+    sourceLabel: getSourceLabel(record.sourceType),
+    sourceTagClass: getSourceTagClass(record.sourceType),
   }
 }
 
@@ -74,7 +100,11 @@ Page({
     navigateTo('/pages/settings/settings')
   },
 
-  goEat() {
+  goChoiceTab() {
     switchTab('/pages/eat/eat')
+  },
+
+  goRecipeTab() {
+    switchTab('/pages/cook/cook')
   },
 })

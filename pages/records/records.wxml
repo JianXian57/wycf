@@ -24,19 +24,25 @@
 
     <view wx:if="{{groups.length}}">
       <view class="card" wx:for="{{groups}}" wx:key="key" wx:for-item="groupItem">
-        <view class="row-between">
+        <view class="row-between group-header">
           <view>
             <text class="section-title">{{groupItem.label}}</text>
             <text class="tiny">{{groupItem.items.length}} 条</text>
           </view>
-          <button class="btn btn-ghost mini-btn" bindtap="goEat">去选饭</button>
+          <view class="group-quick-actions">
+            <button class="btn btn-ghost mini-btn mini-auto" bindtap="goChoiceTab">去选饭</button>
+            <button class="btn btn-soft mini-btn mini-auto" bindtap="goRecipeTab">去做饭</button>
+          </view>
         </view>
 
         <view class="list" style="margin-top: 16rpx;">
           <view class="list-item" wx:for="{{groupItem.items}}" wx:key="id" wx:for-item="record">
             <view class="row-between">
               <view>
-                <view class="list-item-title">{{record.mealType}} · {{record.foodName}}</view>
+                <view class="record-title-row">
+                  <view class="list-item-title">{{record.mealType}} · {{record.foodName}}</view>
+                  <text class="tag {{record.sourceTagClass}}">{{record.sourceLabel}}</text>
+                </view>
                 <view class="list-item-subtitle">{{record.exactLabel}}</view>
                 <view class="form-help" wx:if="{{record.note}}">{{record.note}}</view>
               </view>
@@ -56,7 +62,8 @@
       <view class="empty-subtitle">先抽取并手动补一条实际吃过的内容，之后这里会自动分组展示。</view>
       <view class="actions" style="margin-top: 16rpx;">
         <button class="btn btn-primary" bindtap="addRecord">新增记录</button>
-        <button class="btn btn-soft" bindtap="goEat">去选饭</button>
+        <button class="btn btn-ghost" bindtap="goChoiceTab">去选饭</button>
+        <button class="btn btn-soft" bindtap="goRecipeTab">去做饭</button>
       </view>
     </view>
   </view>

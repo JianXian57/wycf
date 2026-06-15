@@ -1,4 +1,4 @@
-const { getDisplayDrawHistory } = require('../../utils/store')
+const { getDisplayDrawHistory, getRecordedDrawIdSet } = require('../../utils/store')
 const { formatDateTimeLabel, formatHumanizedClock, groupByBeijingDate } = require('../../utils/time')
 const { navigateTo, switchTab } = require('../../utils/ui')
 
@@ -8,9 +8,11 @@ const FILTER_OPTIONS = [
   { value: 'recipe', label: '做饭' },
 ]
 
-function decorateDraw(record) {
+function decorateDraw(record, recordedSet) {
   return {
     ...record,
+    recorded: Boolean(recordedSet[record.id]),
+    statusLabel: recordedSet[record.id] ? '已记录' : '未记录',
     exactLabel: formatDateTimeLabel(record.drawnAt),
     timeLabel: formatHumanizedClock(record.drawnAt),
   }
@@ -37,10 +39,11 @@ Page({
 
   loadData() {
     const filter = this.data.filter
+    const recordedSet = getRecordedDrawIdSet()
     const list = getDisplayDrawHistory(filter === 'all' ? '' : filter)
     const groups = groupByBeijingDate(list, item => item.drawnAt).map(group => ({
       ...group,
-      items: group.items.map(decorateDraw),
+      items: group.items.map(item => decorateDraw(item, recordedSet)),
     }))
 
     this.setData({
