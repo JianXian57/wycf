@@ -1,0 +1,48 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">设置</text>
+      <text class="hero-subtitle">管理本地数据、恢复默认示例、查看应用信息。</text>
+    </view>
+
+    <view class="card">
+      <text class="section-title">数据概览</text>
+      <view class="meta-grid" wx:if="{{summary}}">
+        <view class="meta-box">
+          <text class="meta-box-label">选饭选项</text>
+          <text class="meta-box-value">{{summary.choiceTotal}}</text>
+        </view>
+        <view class="meta-box">
+          <text class="meta-box-label">菜谱数量</text>
+          <text class="meta-box-value">{{summary.recipeTotal}}</text>
+        </view>
+        <view class="meta-box">
+          <text class="meta-box-label">抽取记录</text>
+          <text class="meta-box-value">{{summary.drawHistoryTotal}}</text>
+        </view>
+        <view class="meta-box">
+          <text class="meta-box-label">吃饭记录</text>
+          <text class="meta-box-value">{{summary.mealRecordsTotal}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">管理入口</text>
+      <view class="actions">
+        <button class="btn btn-primary" bindtap="goChoiceList">选饭选项</button>
+        <button class="btn btn-soft" bindtap="goRecipeList">菜谱管理</button>
+        <button class="btn btn-ghost" bindtap="goAbout">关于</button>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">数据操作</text>
+      <view class="actions">
+        <button class="btn btn-soft" bindtap="restoreDefaults">恢复默认数据</button>
+        <button class="btn btn-danger" bindtap="clearData">清空全部数据</button>
+      </view>
+      <view class="form-help">恢复默认数据由你手动触发；清空后不会在下次启动时自动重新生成默认内容。</view>
+    </view>
+  </view>
+</view>

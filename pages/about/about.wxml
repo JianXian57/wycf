@@ -1,0 +1,26 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">关于《我要吃饭》</text>
+      <text class="hero-subtitle">一个轻量的原生微信小程序 MVP，帮助你快速决定吃什么、做什么。</text>
+    </view>
+
+    <view class="card">
+      <text class="section-title">当前能力</text>
+      <view class="list">
+        <view class="list-item" wx:for="{{features}}" wx:key="*this" wx:for-item="feature">
+          <view class="list-item-title">{{feature}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">当前限制</text>
+      <view class="list">
+        <view class="list-item" wx:for="{{limits}}" wx:key="*this" wx:for-item="limit">
+          <view class="list-item-title">{{limit}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

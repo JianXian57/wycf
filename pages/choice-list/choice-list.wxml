@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">选饭选项管理</text>
+      <text class="hero-subtitle">维护“吃什么”的候选项。只有启用的选项会参与随机。</text>
+    </view>
+
+    <view class="card">
+      <view class="row-between">
+        <view>
+          <text class="section-title">当前候选</text>
+          <text class="tiny">启用 {{enabledCount}} / 共 {{choices.length}}</text>
+        </view>
+        <button class="btn btn-primary mini-btn" bindtap="addChoice">新增</button>
+      </view>
+    </view>
+
+    <view wx:if="{{choices.length}}" class="card">
+      <view class="list">
+        <view class="list-item" wx:for="{{choices}}" wx:key="id" wx:for-item="choice">
+          <view class="row-between">
+            <view>
+              <view class="list-item-title">{{choice.name}}</view>
+              <view class="list-item-subtitle">{{choice.category || '未分类'}}</view>
+            </view>
+            <text class="tag {{choice.enabled ? 'tag-success' : 'tag-danger'}}">{{choice.enabled ? '启用' : '停用'}}</text>
+          </view>
+          <view class="actions">
+            <button class="btn btn-soft" data-id="{{choice.id}}" bindtap="editChoice">编辑</button>
+            <button class="btn btn-ghost" data-id="{{choice.id}}" data-enabled="{{choice.enabled ? 'true' : 'false'}}" bindtap="toggleChoice">{{choice.enabled ? '停用' : '启用'}}</button>
+            <button class="btn btn-danger" data-id="{{choice.id}}" data-name="{{choice.name}}" bindtap="deleteChoice">删除</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="card empty">
+      <view class="empty-title">还没有选饭候选项</view>
+      <view class="empty-subtitle">新增一些常去的餐厅、外卖或简餐选项。</view>
+      <view class="actions" style="margin-top: 16rpx;">
+        <button class="btn btn-primary" bindtap="addChoice">新增选项</button>
+      </view>
+    </view>
+  </view>
+</view>

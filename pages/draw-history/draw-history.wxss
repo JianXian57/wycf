@@ -1,0 +1,26 @@
+.mini-btn {
+  padding: 14rpx 20rpx;
+  font-size: 22rpx;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin: 16rpx 0 20rpx;
+}
+
+.filter-chip {
+  padding: 14rpx 24rpx;
+  border-radius: 999rpx;
+  background: #f7f1e8;
+  color: #7d6c59;
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.filter-chip-active {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  box-shadow: 0 10rpx 22rpx rgba(217, 119, 6, 0.18);
+}

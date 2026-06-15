@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">{{title}}</text>
+      <text class="hero-subtitle">食材和步骤按“每行一条”输入，保存时会自动过滤空行。</text>
+    </view>
+
+    <view class="card">
+      <view class="form-item">
+        <text class="form-label">菜谱名称</text>
+        <input class="input" value="{{name}}" placeholder="例如：西红柿炒鸡蛋" data-field="name" bindinput="onInput" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">分类</text>
+        <input class="input" value="{{category}}" placeholder="例如：家常菜" data-field="category" bindinput="onInput" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">食材</text>
+        <textarea class="textarea" value="{{ingredientsText}}" placeholder="每行一条，例如：&#10;西红柿 2个&#10;鸡蛋 3个" data-field="ingredientsText" bindinput="onInput"></textarea>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">步骤</text>
+        <textarea class="textarea" value="{{stepsText}}" placeholder="每行一步" data-field="stepsText" bindinput="onInput"></textarea>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">预计用时（分钟）</text>
+        <input class="input" type="number" value="{{durationMinutes}}" placeholder="正整数" data-field="durationMinutes" bindinput="onInput" />
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">难度</text>
+        <picker range="{{difficultyOptions}}" value="{{difficultyIndex}}" bindchange="onDifficultyChange">
+          <view class="picker">{{difficultyOptions[difficultyIndex]}}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">备注</text>
+        <textarea class="textarea" value="{{note}}" placeholder="可留空" data-field="note" bindinput="onInput"></textarea>
+      </view>
+
+      <view class="switch-row">
+        <view>
+          <view class="list-item-title">参与随机</view>
+          <view class="form-help">关闭后不会参与“做饭”抽取。</view>
+        </view>
+        <switch checked="{{enabled}}" color="#D97706" bindchange="onEnabledChange" />
+      </view>
+
+      <view class="actions" style="margin-top: 20rpx;">
+        <button class="btn btn-primary" bindtap="saveRecipe">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

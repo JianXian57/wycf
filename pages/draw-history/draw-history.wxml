@@ -1,0 +1,68 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">抽取历史</text>
+      <text class="hero-subtitle">保存每一次“选饭 / 做饭”的结果。做饭模式会保留完整快照。</text>
+    </view>
+
+    <view class="card">
+      <view class="row-between">
+        <text class="section-title">历史总数</text>
+        <text class="tag tag-muted">{{totalCount}} 条</text>
+      </view>
+
+      <view class="filter-row">
+        <view
+          wx:for="{{filterOptions}}"
+          wx:key="value"
+          wx:for-item="filterItem"
+          class="filter-chip {{filter === filterItem.value ? 'filter-chip-active' : ''}}"
+          data-filter="{{filterItem.value}}"
+          bindtap="changeFilter"
+        >{{filterItem.label}}</view>
+      </view>
+
+      <view class="actions">
+        <button class="btn btn-primary" bindtap="goChoiceTab">去选饭</button>
+        <button class="btn btn-soft" bindtap="goRecipeTab">去做饭</button>
+        <button class="btn btn-ghost" bindtap="goRecords">查看记录</button>
+      </view>
+    </view>
+
+    <view wx:if="{{groups.length}}">
+      <view class="card" wx:for="{{groups}}" wx:key="key" wx:for-item="groupItem">
+        <text class="section-title">{{groupItem.label}}</text>
+        <view class="list">
+          <view class="list-item" wx:for="{{groupItem.items}}" wx:key="id" wx:for-item="drawItem">
+            <view class="row-between">
+              <view>
+                <view class="list-item-title">{{drawItem.resultName}}</view>
+                <view class="list-item-subtitle">{{drawItem.exactLabel}}</view>
+              </view>
+              <text class="tag {{drawItem.drawType === 'recipe' ? 'tag-success' : 'tag-muted'}}">{{drawItem.drawType === 'recipe' ? '做饭' : '选饭'}}</text>
+            </view>
+
+            <view wx:if="{{drawItem.drawType === 'recipe' && drawItem.snapshot}}">
+              <view class="form-help">{{drawItem.snapshot.category || '未分类'}} · {{drawItem.snapshot.difficulty}} · {{drawItem.snapshot.durationMinutes}} 分钟</view>
+              <view class="form-help" wx:if="{{drawItem.snapshot.note}}">{{drawItem.snapshot.note}}</view>
+              <view class="actions">
+                <button class="btn btn-soft" data-draw-id="{{drawItem.id}}" bindtap="openRecipeDetail">查看快照</button>
+              </view>
+            </view>
+
+            <view wx:else class="form-help">这是一个选饭结果，仅保存名称。</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="card empty">
+      <view class="empty-title">还没有抽取历史</view>
+      <view class="empty-subtitle">去“选饭”或“做饭”完成一次抽取，历史会自动写入本地。</view>
+      <view class="actions" style="margin-top: 16rpx;">
+        <button class="btn btn-primary" bindtap="goChoiceTab">去选饭</button>
+        <button class="btn btn-soft" bindtap="goRecipeTab">去做饭</button>
+      </view>
+    </view>
+  </view>
+</view>

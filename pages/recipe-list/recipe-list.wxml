@@ -1,0 +1,47 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">菜谱管理</text>
+      <text class="hero-subtitle">维护“做饭”模式的候选菜谱。食材和步骤保存为数组。</text>
+    </view>
+
+    <view class="card">
+      <view class="row-between">
+        <view>
+          <text class="section-title">当前菜谱</text>
+          <text class="tiny">启用 {{enabledCount}} / 共 {{recipes.length}}</text>
+        </view>
+        <button class="btn btn-primary mini-btn" bindtap="addRecipe">新增</button>
+      </view>
+    </view>
+
+    <view wx:if="{{recipes.length}}" class="card">
+      <view class="list">
+        <view class="list-item" wx:for="{{recipes}}" wx:key="id" wx:for-item="recipe">
+          <view class="row-between">
+            <view>
+              <view class="list-item-title">{{recipe.name}}</view>
+              <view class="list-item-subtitle">{{recipe.category || '未分类'}} · {{recipe.difficulty}} · {{recipe.durationMinutes}} 分钟</view>
+            </view>
+            <text class="tag {{recipe.enabled ? 'tag-success' : 'tag-danger'}}">{{recipe.enabled ? '启用' : '停用'}}</text>
+          </view>
+          <view class="form-help" wx:if="{{recipe.note}}">{{recipe.note}}</view>
+          <view class="actions">
+            <button class="btn btn-primary" data-id="{{recipe.id}}" bindtap="openRecipe">详情</button>
+            <button class="btn btn-soft" data-id="{{recipe.id}}" bindtap="editRecipe">编辑</button>
+            <button class="btn btn-ghost" data-id="{{recipe.id}}" data-enabled="{{recipe.enabled ? 'true' : 'false'}}" bindtap="toggleRecipe">{{recipe.enabled ? '停用' : '启用'}}</button>
+            <button class="btn btn-danger" data-id="{{recipe.id}}" data-name="{{recipe.name}}" bindtap="deleteRecipe">删除</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="card empty">
+      <view class="empty-title">还没有菜谱</view>
+      <view class="empty-subtitle">新增一个家常菜，之后首页“做饭”模式就能开始抽取。</view>
+      <view class="actions" style="margin-top: 16rpx;">
+        <button class="btn btn-primary" bindtap="addRecipe">新增菜谱</button>
+      </view>
+    </view>
+  </view>
+</view>

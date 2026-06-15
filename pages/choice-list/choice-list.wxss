@@ -1,0 +1,4 @@
+.mini-btn {
+  padding: 14rpx 20rpx;
+  font-size: 22rpx;
+}

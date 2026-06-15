@@ -1,0 +1,28 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">{{title}}</text>
+      <text class="hero-subtitle">名称会自动去掉首尾空格，建议控制在 30 个字以内。</text>
+    </view>
+
+    <view class="card">
+      <view class="form-item">
+        <text class="form-label">选项名称</text>
+        <input class="input" value="{{name}}" maxlength="30" placeholder="例如：食堂、面馆、外卖" bindinput="onNameInput" />
+      </view>
+
+      <view class="switch-row">
+        <view>
+          <view class="list-item-title">参与随机</view>
+          <view class="form-help">关闭后不会被首页抽到。</view>
+        </view>
+        <switch checked="{{enabled}}" color="#D97706" bindchange="onEnabledChange" />
+      </view>
+
+      <view class="form-help" wx:if="{{duplicateHint}}">{{duplicateHint}}</view>
+      <view class="actions" style="margin-top: 20rpx;">
+        <button class="btn btn-primary" bindtap="saveChoice">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

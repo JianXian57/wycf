@@ -1,0 +1,109 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">{{pageTitle}}</text>
+      <text class="hero-subtitle">{{pageSubtitle}}</text>
+    </view>
+
+    <view class="card">
+      <view class="row-between">
+        <text class="section-title">{{rollingSectionTitle}}</text>
+        <text class="tag tag-muted">{{isRolling ? '抽取中' : rollingHint}}</text>
+      </view>
+
+      <view class="rolling-panel {{isRolling ? 'rolling-panel-active' : ''}}">
+        <view wx:if="{{rollingWindow.length}}" class="rolling-track">
+          <view class="rolling-divider"></view>
+          <view class="rolling-item rolling-faded">{{rollingWindow[0].name}}</view>
+          <view class="rolling-divider"></view>
+          <view class="rolling-item rolling-center">{{rollingWindow[1].name}}</view>
+          <view class="rolling-divider"></view>
+          <view class="rolling-item rolling-faded">{{rollingWindow[2].name}}</view>
+          <view class="rolling-divider"></view>
+        </view>
+        <view wx:else class="empty">
+          <view class="empty-title">{{emptyTitle}}</view>
+          <view class="empty-subtitle">{{emptySubtitle}}</view>
+        </view>
+      </view>
+
+      <button class="btn btn-primary action-main" bindtap="startDraw" disabled="{{isRolling || !canDraw}}">
+        {{isRolling ? '抽取中...' : '开始抽取'}}
+      </button>
+
+      <view class="actions">
+        <button class="btn btn-soft" bindtap="goManage">{{manageButtonText}}</button>
+        <button class="btn btn-ghost" bindtap="goDrawHistory">查看抽取记录</button>
+      </view>
+    </view>
+
+    <view class="card" wx:if="{{resultCard}}">
+      <view class="row-between">
+        <text class="section-title">{{resultSectionTitle}}</text>
+        <text class="tag {{resultCard.recorded ? 'tag-success' : 'tag-muted'}}">{{resultCard.recorded ? '已记入' : '已保存'}}</text>
+      </view>
+
+      <view class="list-item-title">{{resultCard.name}}</view>
+      <view class="list-item-subtitle">
+        {{resultCard.category || '未分类'}}
+        <text wx:if="{{resultCard.difficulty}}"> · {{resultCard.difficulty}}</text>
+        <text wx:if="{{resultCard.durationMinutes}}"> · {{resultCard.durationMinutes}} 分钟</text>
+      </view>
+      <view class="form-help" wx:if="{{resultCard.note}}">{{resultCard.note}}</view>
+
+      <view class="actions">
+        <button class="btn btn-primary" data-draw-id="{{resultCard.drawRecordId}}" bindtap="openRecipeDetail">{{recipeActionText}}</button>
+        <button
+          class="btn {{resultCard.canRemember ? 'btn-soft' : 'btn-ghost'}}"
+          data-id="{{resultCard.drawRecordId}}"
+          bindtap="rememberDraw"
+          disabled="{{!resultCard.canRemember}}"
+        >{{resultCard.rememberLabel}}</button>
+      </view>
+      <view class="actions">
+        <button class="btn btn-soft" bindtap="discardAndDrawAgain">不算！再抽一次！</button>
+        <button class="btn btn-ghost" bindtap="drawAgain">考虑下...再抽一次！</button>
+      </view>
+      <view class="result-note">不算不会记入最近抽取记录。</view>
+    </view>
+
+    <view class="card">
+      <view class="row-between">
+        <text class="section-title">最近抽取记录</text>
+        <button class="btn btn-ghost mini-btn top-link" bindtap="goDrawHistory">查看全部</button>
+      </view>
+
+      <view wx:if="{{recentDraws.length}}" class="list">
+        <view class="list-item" wx:for="{{recentDraws}}" wx:key="id" wx:for-item="drawItem">
+          <view class="row-between">
+            <view>
+              <view class="list-item-title">{{drawItem.resultName}}</view>
+              <view class="list-item-subtitle">{{drawItem.exactLabel}}</view>
+            </view>
+            <text class="tag {{drawItem.recorded ? 'tag-success' : 'tag-muted'}}">
+              {{drawItem.recorded ? '已记入' : drawItem.recentTagText}}
+            </text>
+          </view>
+          <view class="form-help">{{drawItem.timeLabel}}</view>
+          <view class="actions">
+            <button
+              class="btn {{drawItem.canRemember ? 'btn-soft' : 'btn-ghost'}}"
+              data-id="{{drawItem.id}}"
+              bindtap="rememberDraw"
+              disabled="{{!drawItem.canRemember}}"
+            >{{drawItem.rememberLabel}}</button>
+            <button class="btn btn-danger" data-id="{{drawItem.id}}" data-name="{{drawItem.resultName}}" bindtap="removeRecentDraw">删除</button>
+          </view>
+          <view class="actions">
+            <button class="btn btn-ghost" data-draw-id="{{drawItem.id}}" bindtap="openRecipeDetail">查看菜谱</button>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="empty">
+        <view class="empty-title">还没有抽取记录</view>
+        <view class="empty-subtitle">完成一次抽取后，这里会自动出现最近 10 条记录。</view>
+      </view>
+    </view>
+  </view>
+</view>

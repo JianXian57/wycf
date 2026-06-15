@@ -1,0 +1,7 @@
+{
+  "name": "meal-decider-miniprogram",
+  "private": true,
+  "scripts": {
+    "self-check": "node tools/self-check.js"
+  }
+}

@@ -1,12 +1,50 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/logs/logs"
+    "pages/eat/eat",
+    "pages/cook/cook",
+    "pages/records/records",
+    "pages/draw-history/draw-history",
+    "pages/choice-list/choice-list",
+    "pages/choice-edit/choice-edit",
+    "pages/recipe-list/recipe-list",
+    "pages/recipe-edit/recipe-edit",
+    "pages/recipe-detail/recipe-detail",
+    "pages/meal-edit/meal-edit",
+    "pages/settings/settings",
+    "pages/about/about"
   ],
   "window": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "Weixin",
-    "navigationBarBackgroundColor": "#ffffff"
+    "navigationBarTitleText": "我要吃饭",
+    "navigationBarBackgroundColor": "#FFF8F1",
+    "backgroundColor": "#FFF8F1",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#8A7964",
+    "selectedColor": "#D97706",
+    "backgroundColor": "#FFFDF9",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/eat/eat",
+        "text": "选饭",
+        "iconPath": "assets/tab-eat.png",
+        "selectedIconPath": "assets/tab-eat-active.png"
+      },
+      {
+        "pagePath": "pages/cook/cook",
+        "text": "做饭",
+        "iconPath": "assets/tab-eat.png",
+        "selectedIconPath": "assets/tab-eat-active.png"
+      },
+      {
+        "pagePath": "pages/records/records",
+        "text": "记录",
+        "iconPath": "assets/tab-records.png",
+        "selectedIconPath": "assets/tab-records-active.png"
+      }
+    ]
   },
   "style": "v2",
   "componentFramework": "glass-easel",

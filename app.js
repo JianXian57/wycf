@@ -1,19 +1,18 @@
-// app.js
+const { getState, getSummary } = require('./utils/store')
+
 App({
   onLaunch() {
-    // 展示本地存储能力
-    const logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
-
-    // 登录
-    wx.login({
-      success: res => {
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      }
-    })
+    this.refreshGlobalData()
   },
+
+  refreshGlobalData() {
+    this.globalData.state = getState()
+    this.globalData.summary = getSummary()
+    return this.globalData.summary
+  },
+
   globalData: {
-    userInfo: null
-  }
+    state: null,
+    summary: null,
+  },
 })

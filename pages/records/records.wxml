@@ -1,0 +1,63 @@
+<view class="page">
+  <view class="shell">
+    <view class="hero">
+      <text class="hero-title">记录</text>
+      <text class="hero-subtitle">记录你实际吃了什么。按北京时间分组，支持新增、编辑和删除。</text>
+    </view>
+
+    <view class="card">
+      <view class="meta-grid">
+        <view class="meta-box">
+          <text class="meta-box-label">总记录</text>
+          <text class="meta-box-value">{{totalCount}}</text>
+        </view>
+        <view class="meta-box">
+          <text class="meta-box-label">最新时间</text>
+          <text class="meta-box-value">{{latestLabel}}</text>
+        </view>
+      </view>
+      <view class="actions" style="margin-top: 16rpx;">
+        <button class="btn btn-primary" bindtap="addRecord">新增记录</button>
+        <button class="btn btn-soft" bindtap="goSettings">去设置</button>
+      </view>
+    </view>
+
+    <view wx:if="{{groups.length}}">
+      <view class="card" wx:for="{{groups}}" wx:key="key" wx:for-item="groupItem">
+        <view class="row-between">
+          <view>
+            <text class="section-title">{{groupItem.label}}</text>
+            <text class="tiny">{{groupItem.items.length}} 条</text>
+          </view>
+          <button class="btn btn-ghost mini-btn" bindtap="goEat">去选饭</button>
+        </view>
+
+        <view class="list" style="margin-top: 16rpx;">
+          <view class="list-item" wx:for="{{groupItem.items}}" wx:key="id" wx:for-item="record">
+            <view class="row-between">
+              <view>
+                <view class="list-item-title">{{record.mealType}} · {{record.foodName}}</view>
+                <view class="list-item-subtitle">{{record.exactLabel}}</view>
+                <view class="form-help" wx:if="{{record.note}}">{{record.note}}</view>
+              </view>
+              <text class="tag tag-muted">{{record.timeLabel}}</text>
+            </view>
+            <view class="actions">
+              <button class="btn btn-soft" data-id="{{record.id}}" bindtap="editRecord">编辑</button>
+              <button class="btn btn-danger" data-id="{{record.id}}" data-name="{{record.foodName}}" bindtap="deleteRecord">删除</button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="card empty">
+      <view class="empty-title">还没有吃饭记录</view>
+      <view class="empty-subtitle">先抽取并手动补一条实际吃过的内容，之后这里会自动分组展示。</view>
+      <view class="actions" style="margin-top: 16rpx;">
+        <button class="btn btn-primary" bindtap="addRecord">新增记录</button>
+        <button class="btn btn-soft" bindtap="goEat">去选饭</button>
+      </view>
+    </view>
+  </view>
+</view>
