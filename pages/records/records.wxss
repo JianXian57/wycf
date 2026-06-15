@@ -1,11 +1,36 @@
-.mini-btn {
+.overview-head {
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+.overview-title {
+  margin-bottom: 0;
+}
+
+.quick-entry-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12rpx;
+}
+
+.quick-entry-btn {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
   padding: 14rpx 20rpx;
   font-size: 22rpx;
 }
 
-.mini-auto {
-  min-width: auto !important;
-  flex: 0 0 auto !important;
+.overview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.overview-action-btn {
+  flex: 1 1 200rpx !important;
+  min-width: 0 !important;
 }
 
 .group-header {
@@ -13,18 +38,30 @@
   align-items: flex-start;
 }
 
-.group-quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  justify-content: flex-end;
-}
-
 .record-title-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12rpx;
+}
+
+.record-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.record-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.record-card-btn {
+  flex: 0 0 auto !important;
+  min-width: 132rpx !important;
+  padding: 14rpx 24rpx;
+  font-size: 22rpx;
 }
 
 .tag-ghost {

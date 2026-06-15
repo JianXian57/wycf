@@ -6,6 +6,14 @@
     </view>
 
     <view class="card">
+      <view class="row-between overview-head">
+        <text class="section-title overview-title">所有记录</text>
+        <view class="quick-entry-row">
+          <button class="btn btn-ghost quick-entry-btn" bindtap="goChoiceTab">去选饭</button>
+          <button class="btn btn-soft quick-entry-btn" bindtap="goRecipeTab">去做饭</button>
+        </view>
+      </view>
+
       <view class="meta-grid">
         <view class="meta-box">
           <text class="meta-box-label">总记录</text>
@@ -16,9 +24,9 @@
           <text class="meta-box-value">{{latestLabel}}</text>
         </view>
       </view>
-      <view class="actions" style="margin-top: 16rpx;">
-        <button class="btn btn-primary" bindtap="addRecord">新增记录</button>
-        <button class="btn btn-soft" bindtap="goSettings">去设置</button>
+      <view class="overview-actions">
+        <button class="btn btn-primary overview-action-btn" bindtap="addRecord">新增记录</button>
+        <button class="btn btn-soft overview-action-btn" bindtap="goSettings">去设置</button>
       </view>
     </view>
 
@@ -29,16 +37,12 @@
             <text class="section-title">{{groupItem.label}}</text>
             <text class="tiny">{{groupItem.items.length}} 条</text>
           </view>
-          <view class="group-quick-actions">
-            <button class="btn btn-ghost mini-btn mini-auto" bindtap="goChoiceTab">去选饭</button>
-            <button class="btn btn-soft mini-btn mini-auto" bindtap="goRecipeTab">去做饭</button>
-          </view>
         </view>
 
         <view class="list" style="margin-top: 16rpx;">
           <view class="list-item" wx:for="{{groupItem.items}}" wx:key="id" wx:for-item="record">
             <view class="row-between">
-              <view>
+              <view class="record-main">
                 <view class="record-title-row">
                   <view class="list-item-title">{{record.mealType}} · {{record.foodName}}</view>
                   <text class="tag {{record.sourceTagClass}}">{{record.sourceLabel}}</text>
@@ -48,9 +52,9 @@
               </view>
               <text class="tag tag-muted">{{record.timeLabel}}</text>
             </view>
-            <view class="actions">
-              <button class="btn btn-soft" data-id="{{record.id}}" bindtap="editRecord">编辑</button>
-              <button class="btn btn-danger" data-id="{{record.id}}" data-name="{{record.foodName}}" bindtap="deleteRecord">删除</button>
+            <view class="record-card-actions">
+              <button class="btn btn-soft record-card-btn" data-id="{{record.id}}" bindtap="editRecord">编辑</button>
+              <button class="btn btn-danger record-card-btn" data-id="{{record.id}}" data-name="{{record.foodName}}" bindtap="deleteRecord">删除</button>
             </view>
           </view>
         </view>
@@ -60,10 +64,10 @@
     <view wx:else class="card empty">
       <view class="empty-title">还没有吃饭记录</view>
       <view class="empty-subtitle">先抽取并手动补一条实际吃过的内容，之后这里会自动分组展示。</view>
-      <view class="actions" style="margin-top: 16rpx;">
-        <button class="btn btn-primary" bindtap="addRecord">新增记录</button>
-        <button class="btn btn-ghost" bindtap="goChoiceTab">去选饭</button>
-        <button class="btn btn-soft" bindtap="goRecipeTab">去做饭</button>
+      <view class="overview-actions" style="margin-top: 16rpx;">
+        <button class="btn btn-primary overview-action-btn" bindtap="addRecord">新增记录</button>
+        <button class="btn btn-ghost overview-action-btn" bindtap="goChoiceTab">去选饭</button>
+        <button class="btn btn-soft overview-action-btn" bindtap="goRecipeTab">去做饭</button>
       </view>
     </view>
   </view>

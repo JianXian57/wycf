@@ -307,6 +307,7 @@ function normalizeDrawRecordList(list) {
 function normalizeMeta(raw) {
   const meta = isObject(raw) ? raw : {}
   const lastResultDrawIds = isObject(meta.lastResultDrawIds) ? meta.lastResultDrawIds : {}
+  const currentPendingDrawIds = isObject(meta.currentPendingDrawIds) ? meta.currentPendingDrawIds : {}
 
   return {
     initialized: true,
@@ -317,6 +318,10 @@ function normalizeMeta(raw) {
     lastResultDrawIds: {
       choice: trimText(lastResultDrawIds.choice),
       recipe: trimText(lastResultDrawIds.recipe),
+    },
+    currentPendingDrawIds: {
+      choice: trimText(currentPendingDrawIds.choice),
+      recipe: trimText(currentPendingDrawIds.recipe),
     },
   }
 }

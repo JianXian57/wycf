@@ -19,7 +19,7 @@ const {
 } = require('./validators')
 const { sortByTimestampDesc } = require('./time')
 
-const SCHEMA_VERSION = 3
+const SCHEMA_VERSION = 4
 const STORAGE_KEYS = {
   META: 'meal_decider_meta',
   CHOICES: 'meal_decider_choices',
@@ -51,6 +51,10 @@ function createBaseMeta(timestamp) {
     clearedAt: 0,
     updatedAt: current,
     lastResultDrawIds: {
+      choice: '',
+      recipe: '',
+    },
+    currentPendingDrawIds: {
       choice: '',
       recipe: '',
     },
@@ -161,6 +165,8 @@ function syncMetaReferences(state) {
 
   const choiceId = trimText(nextState.meta.lastResultDrawIds.choice)
   const recipeId = trimText(nextState.meta.lastResultDrawIds.recipe)
+  const pendingChoiceId = trimText(nextState.meta.currentPendingDrawIds.choice)
+  const pendingRecipeId = trimText(nextState.meta.currentPendingDrawIds.recipe)
 
   nextState.meta.lastResultDrawIds.choice = drawIdMap[choiceId] && drawIdMap[choiceId].drawType === 'choice'
     ? choiceId
@@ -168,6 +174,13 @@ function syncMetaReferences(state) {
   nextState.meta.lastResultDrawIds.recipe = drawIdMap[recipeId] && drawIdMap[recipeId].drawType === 'recipe'
     ? recipeId
     : pickLatestDrawId(recentDraws, 'recipe')
+
+  nextState.meta.currentPendingDrawIds.choice = drawIdMap[pendingChoiceId] && drawIdMap[pendingChoiceId].drawType === 'choice'
+    ? pendingChoiceId
+    : ''
+  nextState.meta.currentPendingDrawIds.recipe = drawIdMap[pendingRecipeId] && drawIdMap[pendingRecipeId].drawType === 'recipe'
+    ? pendingRecipeId
+    : ''
 
   return nextState
 }
@@ -197,12 +210,17 @@ function needsStateMigration(rawState, normalizedState) {
     return true
   }
 
+  if (!rawMeta.currentPendingDrawIds || typeof rawMeta.currentPendingDrawIds !== 'object') {
+    return true
+  }
+
   const rawMeals = Array.isArray(rawState.mealRecords) ? rawState.mealRecords : []
   if (rawMeals.some(item => !item || typeof item !== 'object' || typeof item.sourceDrawId !== 'string' || typeof item.sourceType !== 'string')) {
     return true
   }
 
   return JSON.stringify(rawMeta.lastResultDrawIds) !== JSON.stringify(normalizedState.meta.lastResultDrawIds)
+    || JSON.stringify(rawMeta.currentPendingDrawIds) !== JSON.stringify(normalizedState.meta.currentPendingDrawIds)
 }
 
 function getState() {
@@ -404,6 +422,31 @@ function getLastDrawResult(drawType) {
   }
 
   return sortDrawHistoryByTime(state.drawHistory).find(item => item.drawType === normalizedDrawType) || null
+}
+
+function getCurrentPendingDraw(drawType) {
+  const normalizedDrawType = drawType === 'recipe' ? 'recipe' : 'choice'
+  const state = getState()
+  const pendingId = trimText(state.meta.currentPendingDrawIds[normalizedDrawType])
+
+  if (!pendingId) {
+    return null
+  }
+
+  return state.drawHistory.find(item => item.id === pendingId && item.drawType === normalizedDrawType) || null
+}
+
+function setCurrentPendingDrawId(drawType, drawId) {
+  const normalizedDrawType = drawType === 'recipe' ? 'recipe' : 'choice'
+  const state = getState()
+  const nextId = trimText(drawId)
+
+  state.meta.currentPendingDrawIds[normalizedDrawType] = nextId
+  return persistState(state)
+}
+
+function clearCurrentPendingDraw(drawType) {
+  return setCurrentPendingDrawId(drawType, '')
 }
 
 function getSummary() {
@@ -710,6 +753,7 @@ function recordDraw(result, drawType) {
 
   state.drawHistory.unshift(drawRecord)
   state.meta.lastResultDrawIds[normalizedDrawType] = drawRecord.id
+  state.meta.currentPendingDrawIds[normalizedDrawType] = drawRecord.id
   persistState(state)
 
   return {
@@ -737,6 +781,9 @@ function deleteDrawRecord(id) {
     if (state.meta.lastResultDrawIds[target.drawType] === targetId) {
       state.meta.lastResultDrawIds[target.drawType] = fallbackId
     }
+    if (state.meta.currentPendingDrawIds[target.drawType] === targetId) {
+      state.meta.currentPendingDrawIds[target.drawType] = ''
+    }
   }
 
   persistState(state)
@@ -752,6 +799,7 @@ module.exports = {
   MEAL_TYPES,
   bootstrapDefaultData,
   clearAllData,
+  clearCurrentPendingDraw,
   createEmptyState,
   createDefaultState,
   deleteChoice,
@@ -759,6 +807,7 @@ module.exports = {
   deleteMealRecord,
   deleteRecipe,
   getChoiceById,
+  getCurrentPendingDraw,
   getDisplayChoices,
   getDisplayDrawHistory,
   getDisplayMealRecords,
@@ -783,6 +832,7 @@ module.exports = {
   saveMealRecordDraft,
   saveRecipeDraft,
   setChoices,
+  setCurrentPendingDrawId,
   setDrawHistory,
   setMealRecords,
   setRecipes,

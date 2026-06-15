@@ -4,11 +4,13 @@ const {
   SCHEMA_VERSION,
   STORAGE_KEYS,
   bootstrapDefaultData,
+  clearCurrentPendingDraw,
   clearAllData,
   deleteDrawRecord,
   deleteMealRecord,
   getDisplayDrawHistory,
   getDisplayMealRecords,
+  getCurrentPendingDraw,
   getLastDrawResult,
   getRecentDrawHistory,
   getState,
@@ -116,6 +118,10 @@ function testMigration() {
   assert.strictEqual(migrated.meta.schemaVersion, SCHEMA_VERSION)
   assert.strictEqual(migrated.meta.lastResultDrawIds.choice, 'draw_choice_legacy')
   assert.strictEqual(migrated.meta.lastResultDrawIds.recipe, 'draw_recipe_legacy')
+  assert.deepStrictEqual(migrated.meta.currentPendingDrawIds, {
+    choice: '',
+    recipe: '',
+  })
   assert.strictEqual(migrated.choices[0].name, '食堂')
   assert.strictEqual(migrated.recipes[0].name, '西红柿炒鸡蛋')
   assert.strictEqual(migrated.drawHistory.find(item => item.id === 'draw_recipe_legacy').resultName, '西红柿炒鸡蛋')
@@ -196,6 +202,11 @@ function run() {
   assert.strictEqual(getDisplayDrawHistory('recipe').length, 1)
   assert.strictEqual(getLastDrawResult('choice').id, choiceDraw.data.id)
   assert.strictEqual(getLastDrawResult('recipe').id, recipeDraw.data.id)
+  assert.strictEqual(getCurrentPendingDraw('choice').id, choiceDraw.data.id)
+  assert.strictEqual(getCurrentPendingDraw('recipe').id, recipeDraw.data.id)
+
+  clearCurrentPendingDraw('recipe')
+  assert.strictEqual(getCurrentPendingDraw('recipe'), null)
 
   const mealSave = saveMealRecordDraft({
     date: '2026-06-14',
@@ -260,6 +271,7 @@ function run() {
   const deleteDraw = deleteDrawRecord(choiceDraw.data.id)
   assert.strictEqual(deleteDraw.ok, true)
   assert.strictEqual(getRecentDrawHistory(10, 'choice').length, 0)
+  assert.strictEqual(getCurrentPendingDraw('choice'), null)
   assert.strictEqual(isDrawRecorded(choiceDraw.data.id), true)
 
   testMigration()

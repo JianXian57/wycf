@@ -1,11 +1,12 @@
 const { pickEnabledItems, pickRandomItem } = require('./random')
 const {
+  clearCurrentPendingDraw,
   deleteDrawRecord,
   getChoiceById,
+  getCurrentPendingDraw,
   getDrawRecordById,
   getEnabledChoices,
   getEnabledRecipes,
-  getLastDrawResult,
   getRecentDrawHistory,
   getRecordedDrawIdSet,
   getRecipeById,
@@ -14,6 +15,14 @@ const {
 } = require('./store')
 const { formatDateTimeLabel, formatHumanizedClock } = require('./time')
 const { confirmModal, navigateTo, toast } = require('./ui')
+
+const RESULT_STATES = {
+  IDLE: 'idle',
+  ANIMATING: 'animating',
+  PENDING: 'pending',
+  NAVIGATING: 'navigating',
+  COMPLETED: 'completed',
+}
 
 function buildRollingWindow(list, centerIndex) {
   if (!list.length) {
@@ -174,29 +183,20 @@ function showResultHelp() {
       title: '结果说明',
       content: [
         '好，就吃这个，记下来！',
-        '创建吃饭记录，不再继续抽取。',
+        '创建吃饭记录，保留本次抽取历史，不再继续抽取。',
         '',
         '不算，再抽一次！',
-        '不创建吃饭记录，删除本次抽取历史，并重新抽取。',
+        '删除本次抽取历史，不创建吃饭记录，并重新抽取。',
         '',
-        '记一下，再抽个别的吧~',
-        '创建吃饭记录，保存成功后继续抽取。',
+        '暂记一下，再抽个别的吧~',
+        '保留本次抽取历史作为备选，不创建吃饭记录，并重新抽取。',
         '',
         '算了，不抽了~',
-        '不创建吃饭记录，删除本次抽取历史，也不再抽取。',
+        '删除本次抽取历史，不创建吃饭记录，也不再抽取。',
       ].join('\n'),
       showCancel: false,
       confirmText: '知道了',
     })
-  }
-}
-
-function updateReturnState(pageRef, payload) {
-  const currentPages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
-  const current = currentPages[currentPages.length - 1]
-
-  if (current && current === pageRef) {
-    pageRef.pendingMealFlow = payload
   }
 }
 
@@ -207,8 +207,8 @@ function createDrawPage(drawType) {
     data: {
       ...modeConfig,
       canDraw: false,
-      isRolling: false,
-      isBusy: false,
+      resultState: RESULT_STATES.IDLE,
+      currentDrawId: '',
       rollingWindow: [],
       rollingHint: '点击开始抽取',
       resultCard: null,
@@ -226,14 +226,20 @@ function createDrawPage(drawType) {
       this.pendingMealFlow = null
       this.loadState()
 
-      if (pending && pending.status === 'saved' && pending.flowAction === 'save_and_redraw') {
-        this.startDraw()
+      if (!pending || pending.sourceDrawId !== this.data.currentDrawId) {
+        return
+      }
+
+      if (pending.status === 'saved' && pending.flowAction === 'save_only') {
+        this.completeCurrentResult({ clearResult: true, startNextDraw: false })
       }
     },
 
     onHide() {
       this.stopRolling()
-      this.setData({ isBusy: false })
+      if (this.data.resultState === RESULT_STATES.ANIMATING) {
+        this.setData({ resultState: RESULT_STATES.IDLE })
+      }
     },
 
     onUnload() {
@@ -247,16 +253,38 @@ function createDrawPage(drawType) {
       }
     },
 
+    setResultState(nextState) {
+      this.setData({
+        resultState: nextState,
+      })
+    },
+
+    canOperateCurrentResult(expectedDrawId) {
+      return this.data.resultState === RESULT_STATES.PENDING
+        && Boolean(this.data.currentDrawId)
+        && !(this.data.resultCard && this.data.resultCard.recorded)
+        && (!expectedDrawId || expectedDrawId === this.data.currentDrawId)
+    },
+
     loadState() {
       const pool = getPoolByType(this.data.drawType)
       const recordedSet = getRecordedDrawIdSet()
-      const lastDraw = getLastDrawResult(this.data.drawType)
+      let pendingDraw = getCurrentPendingDraw(this.data.drawType)
+
+      if (pendingDraw && recordedSet[pendingDraw.id]) {
+        clearCurrentPendingDraw(this.data.drawType)
+        pendingDraw = null
+      }
+
+      const resultCard = buildResultCard(pendingDraw, recordedSet)
 
       this.setData({
         canDraw: pool.length > 0,
         rollingWindow: pool.length ? buildRollingWindow(pool, 0) : [],
         rollingHint: pool.length ? '准备好了，按下开始抽取' : '先去管理页补充可用内容',
-        resultCard: buildResultCard(lastDraw, recordedSet),
+        resultCard,
+        currentDrawId: resultCard ? resultCard.drawRecordId : '',
+        resultState: resultCard ? RESULT_STATES.PENDING : RESULT_STATES.IDLE,
         recentDraws: getRecentDrawHistory(10, this.data.drawType).map(item => decorateDraw(item, recordedSet)),
       })
 
@@ -264,7 +292,7 @@ function createDrawPage(drawType) {
     },
 
     startDraw() {
-      if (this.data.isRolling || this.data.isBusy) {
+      if (this.data.resultState !== RESULT_STATES.IDLE) {
         return
       }
 
@@ -279,9 +307,9 @@ function createDrawPage(drawType) {
 
       this.stopRolling()
       this.setData({
-        isRolling: true,
-        isBusy: true,
+        resultState: RESULT_STATES.ANIMATING,
         resultCard: null,
+        currentDrawId: '',
         rollingHint: '正在抽取...',
         rollingWindow: buildRollingWindow(pool, 0),
       })
@@ -300,8 +328,8 @@ function createDrawPage(drawType) {
           const recordedSet = getRecordedDrawIdSet()
 
           this.setData({
-            isRolling: false,
-            isBusy: false,
+            resultState: RESULT_STATES.PENDING,
+            currentDrawId: drawResult.data.id,
             rollingHint: '抽取完成',
             rollingWindow: buildRollingWindow(pool, pool.indexOf(finalItem)),
             resultCard: buildResultCard(drawResult.data, recordedSet),
@@ -323,85 +351,117 @@ function createDrawPage(drawType) {
       showResultHelp()
     },
 
+    completeCurrentResult(options) {
+      const config = options || {}
+      const currentDrawId = this.data.currentDrawId
+
+      this.setData({
+        resultState: RESULT_STATES.COMPLETED,
+      })
+
+      if (config.clearResult && currentDrawId) {
+        clearCurrentPendingDraw(this.data.drawType)
+      } else if (config.clearPending && currentDrawId) {
+        clearCurrentPendingDraw(this.data.drawType)
+      }
+
+      this.setData({
+        resultCard: config.clearResult ? null : this.data.resultCard,
+        currentDrawId: config.clearResult || config.clearPending ? '' : currentDrawId,
+      })
+
+      if (config.startNextDraw) {
+        this.setData({
+          resultState: RESULT_STATES.IDLE,
+        })
+        this.startDraw()
+        return
+      }
+
+      this.loadState()
+    },
+
     rememberAndStop() {
       this.openMealEditor('save_only')
     },
 
-    rememberAndRedraw() {
-      this.openMealEditor('save_and_redraw')
+    keepAndRedraw() {
+      if (!this.canOperateCurrentResult()) {
+        return
+      }
+
+      this.completeCurrentResult({
+        clearResult: false,
+        clearPending: true,
+        startNextDraw: true,
+      })
     },
 
     openMealEditor(flowAction) {
-      if (this.data.isRolling || this.data.isBusy) {
+      if (!this.canOperateCurrentResult()) {
         return
       }
 
       const resultCard = this.data.resultCard
-      if (!resultCard || !resultCard.drawRecordId) {
-        return
-      }
-
-      const drawRecord = getDrawRecordById(resultCard.drawRecordId)
+      const drawRecord = resultCard ? getDrawRecordById(resultCard.drawRecordId) : null
       if (!drawRecord) {
         toast('抽取记录不存在')
+        this.loadState()
         return
       }
 
       if (isDrawRecorded(drawRecord.id)) {
         toast('这条抽取结果已经记入过记录了')
-        this.loadState()
-        return
-      }
-
-      this.setData({ isBusy: true })
-      updateReturnState(this, null)
-      navigateTo(buildMealEditUrl(drawRecord, modeConfig, flowAction))
-    },
-
-    redrawWithoutSaving() {
-      if (this.data.isRolling || this.data.isBusy) {
-        return
-      }
-
-      const resultCard = this.data.resultCard
-      if (resultCard && resultCard.drawRecordId) {
-        const result = deleteDrawRecord(resultCard.drawRecordId)
-        if (!result.ok) {
-          toast(result.message)
-          return
-        }
-
-        this.setData({
-          resultCard: null,
-          recentDraws: getRecentDrawHistory(10, this.data.drawType).map(item => decorateDraw(item, getRecordedDrawIdSet())),
+        this.completeCurrentResult({
+          clearResult: true,
+          startNextDraw: false,
         })
-      }
-
-      this.startDraw()
-    },
-
-    discardResultCard() {
-      if (this.data.isRolling || this.data.isBusy) {
-        return
-      }
-
-      const resultCard = this.data.resultCard
-      if (!resultCard || !resultCard.drawRecordId) {
-        return
-      }
-
-      const result = deleteDrawRecord(resultCard.drawRecordId)
-      if (!result.ok) {
-        toast(result.message)
         return
       }
 
       this.setData({
-        isBusy: false,
-        resultCard: null,
-        recentDraws: getRecentDrawHistory(10, this.data.drawType).map(item => decorateDraw(item, getRecordedDrawIdSet())),
+        resultState: RESULT_STATES.NAVIGATING,
       })
-      this.loadState()
+      this.pendingMealFlow = null
+      navigateTo(buildMealEditUrl(drawRecord, modeConfig, flowAction))
+    },
+
+    redrawWithoutSaving() {
+      if (!this.canOperateCurrentResult()) {
+        return
+      }
+
+      const targetDrawId = this.data.currentDrawId
+      const result = deleteDrawRecord(targetDrawId)
+      if (!result.ok) {
+        toast(result.message)
+        this.loadState()
+        return
+      }
+
+      this.completeCurrentResult({
+        clearResult: true,
+        startNextDraw: true,
+      })
+    },
+
+    discardResultCard() {
+      if (!this.canOperateCurrentResult()) {
+        return
+      }
+
+      const targetDrawId = this.data.currentDrawId
+      const result = deleteDrawRecord(targetDrawId)
+      if (!result.ok) {
+        toast(result.message)
+        this.loadState()
+        return
+      }
+
+      this.completeCurrentResult({
+        clearResult: true,
+        startNextDraw: false,
+      })
     },
 
     goManage() {
@@ -413,7 +473,7 @@ function createDrawPage(drawType) {
     },
 
     rememberDraw(e) {
-      if (this.data.isBusy || this.data.isRolling) {
+      if (this.data.resultState === RESULT_STATES.ANIMATING || this.data.resultState === RESULT_STATES.NAVIGATING || this.data.resultState === RESULT_STATES.COMPLETED) {
         return
       }
 
@@ -431,13 +491,11 @@ function createDrawPage(drawType) {
         return
       }
 
-      this.setData({ isBusy: true })
-      updateReturnState(this, null)
       navigateTo(buildMealEditUrl(drawRecord, modeConfig, 'save_only'))
     },
 
     async removeRecentDraw(e) {
-      if (this.data.isBusy || this.data.isRolling) {
+      if (this.data.resultState === RESULT_STATES.ANIMATING || this.data.resultState === RESULT_STATES.NAVIGATING || this.data.resultState === RESULT_STATES.COMPLETED) {
         return
       }
 
@@ -453,16 +511,13 @@ function createDrawPage(drawType) {
         return
       }
 
-      this.setData({ isBusy: true })
       const result = deleteDrawRecord(drawId)
       if (!result.ok) {
-        this.setData({ isBusy: false })
         toast(result.message)
         return
       }
 
       toast('已删除')
-      this.setData({ isBusy: false })
       this.loadState()
     },
 
@@ -476,5 +531,6 @@ function createDrawPage(drawType) {
 }
 
 module.exports = {
+  RESULT_STATES,
   createDrawPage,
 }
