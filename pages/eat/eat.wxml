@@ -31,9 +31,9 @@
         {{resultState === 'animating' ? '抽取中...' : '开始抽取'}}
       </button>
 
-      <view class="aux-actions">
-        <button class="btn btn-soft aux-btn" bindtap="goManage">{{manageButtonText}}</button>
-        <button class="btn btn-ghost aux-btn" bindtap="goDrawHistory">查看抽取记录</button>
+      <view class="two-column-actions draw-shortcuts">
+        <button class="btn btn-soft" bindtap="goManage">{{manageButtonText}}</button>
+        <button class="btn btn-ghost" bindtap="goDrawHistory">查看抽取记录</button>
       </view>
     </view>
 
@@ -59,30 +59,30 @@
         <view class="form-help" wx:if="{{resultCard.note}}">{{resultCard.note}}</view>
       </view>
 
-      <view class="result-grid">
+      <view class="result-action-grid">
         <button
-          class="btn btn-primary result-grid-btn"
+          class="btn btn-primary"
           bindtap="rememberAndStop"
           disabled="{{resultState !== 'pending' || resultCard.recorded}}"
         >好，就吃这个，记下来！</button>
         <button
-          class="btn btn-soft result-grid-btn"
+          class="btn btn-soft"
           bindtap="redrawWithoutSaving"
           disabled="{{resultState !== 'pending' || resultCard.recorded}}"
         >不算，再抽一次！</button>
         <button
-          class="btn btn-ghost result-grid-btn"
+          class="btn btn-ghost"
           bindtap="keepAndRedraw"
           disabled="{{resultState !== 'pending' || resultCard.recorded}}"
         >暂记一下，再抽个别的吧~</button>
         <button
-          class="btn btn-ghost result-grid-btn"
+          class="btn btn-ghost"
           bindtap="discardResultCard"
           disabled="{{resultState !== 'pending' || resultCard.recorded}}"
         >算了，不抽了~</button>
       </view>
 
-      <view class="actions result-detail-action" wx:if="{{resultCard.canOpenDetail}}">
+      <view class="detail-action-row" wx:if="{{resultCard.canOpenDetail}}">
         <button class="btn btn-soft" data-draw-id="{{resultCard.drawRecordId}}" bindtap="openRecipeDetail">{{recipeActionText}}</button>
       </view>
     </view>
@@ -90,7 +90,10 @@
     <view class="card">
       <view class="row-between">
         <text class="section-title">最近抽取记录</text>
-        <button class="mini-link" bindtap="goDrawHistory">查看全部 ></button>
+        <view class="section-link" bindtap="goDrawHistory">
+          <text>查看全部</text>
+          <text class="section-link-arrow">›</text>
+        </view>
       </view>
 
       <view wx:if="{{recentDraws.length}}" class="list">
@@ -103,22 +106,22 @@
             <text class="tag {{drawItem.recorded ? 'tag-success' : 'tag-muted'}}">{{drawItem.statusLabel}}</text>
           </view>
           <view class="form-help">{{drawItem.timeLabel}}</view>
-          <view class="record-actions">
+          <view class="draw-item-actions">
             <button
-              class="btn {{drawItem.canRemember ? 'btn-soft' : 'btn-ghost'}} record-action-btn"
+              class="btn {{drawItem.canRemember ? 'btn-soft' : 'btn-ghost'}}"
               data-id="{{drawItem.id}}"
               bindtap="rememberDraw"
               disabled="{{resultState === 'animating' || resultState === 'navigating' || resultState === 'completed' || !drawItem.canRemember}}"
             >{{drawItem.rememberLabel}}</button>
             <button
-              class="btn btn-danger record-action-btn"
+              class="btn btn-danger"
               data-id="{{drawItem.id}}"
               data-name="{{drawItem.resultName}}"
               bindtap="removeRecentDraw"
               disabled="{{resultState === 'animating' || resultState === 'navigating' || resultState === 'completed'}}"
             >删除</button>
           </view>
-          <view class="actions" wx:if="{{drawItem.canOpenDetail}}">
+          <view class="draw-item-detail-row" wx:if="{{drawItem.canOpenDetail}}">
             <button class="btn btn-ghost" data-draw-id="{{drawItem.id}}" bindtap="openRecipeDetail">查看菜谱</button>
           </view>
         </view>
